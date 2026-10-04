@@ -65,6 +65,11 @@ bool locked = false;
 
 bool isAllowed(GJGameLevel* level)
 {
+    if (!level)
+    {
+        return false;
+    }
+
     if (!m_protectLevels)
     {
         return true;
