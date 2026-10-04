@@ -1052,19 +1052,6 @@ class $modify(SafetyLockLevelBrowserLayer, LevelBrowserLayer)
                     setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
                 }
             }
-
-            auto createBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(savedMenu->getChildByIDRecursive("switch-mode-button"));
-            if (createBtn)
-            {
-                if (safetylock::m_silent)
-                {
-                    setVisibleByUs(createBtn, CAN_MODIFY_ACCOUNT);
-                }
-                else
-                {
-                    setButtonLocked(createBtn, CAN_MODIFY_ACCOUNT);
-                }
-            }
         }
     }
 
