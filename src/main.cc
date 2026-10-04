@@ -47,6 +47,8 @@ using SubmitFn = std::function<bool(std::string const&)>;
         } \
     }
 
+void refreshAllScenes();
+
 namespace safetylock
 {
 std::string m_pinSalt;
@@ -356,6 +358,8 @@ protected:
                 [this](Button*)
                 {
                     safetylock::locked = !safetylock::locked;
+                    refreshAllScenes();
+
                     m_lockSprite->setString(safetylock::locked ? "Unlock" : "Lock");
 
                     Notification::create(
@@ -477,6 +481,7 @@ bool pinSudoCheck(SuccessFn onSuccess = [] {})
         [onSuccess]
         {
             safetylock::locked = false;
+            refreshAllScenes();
             Notification::create("Unlocked", NotificationIcon::Info)->show();
             onSuccess();
         }
@@ -677,6 +682,7 @@ class $modify(SafetyLockProfilePage, ProfilePage)
         this->applyLocks();
         return true;
     }
+
     void applyLocks()
     {
         auto commentList = typeinfo_cast<GJCommentListLayer*>(this->getChildByIDRecursive("GJCommentListLayer"));
@@ -1333,3 +1339,46 @@ class $modify(SafetyLockEditLevelLayer, EditLevelLayer)
         EditLevelLayer::confirmDelete(sender);
     }
 };
+
+template<class Base, class Mod>
+static void refreshLayers(CCNode* scene)
+{
+    for (auto child : CCArrayExt<CCNode*>(scene->getChildren()))
+    {
+        if (auto layer = typeinfo_cast<Base*>(child))
+        {
+            static_cast<Mod*>(layer)->applyLocks();
+        }
+    }
+}
+
+static void refreshScene(CCNode* scene)
+{
+    if (!scene)
+    {
+        return;
+    }
+
+    refreshLayers<OptionsLayer, SafetyLockOptionsLayer>(scene);
+    refreshLayers<ProfilePage, SafetyLockProfilePage>(scene);
+    refreshLayers<LevelInfoLayer, SafetyLockLevelInfoLayer>(scene);
+    refreshLayers<InfoLayer, SafetyLockInfoLayer>(scene);
+    refreshLayers<LevelBrowserLayer, SafetyLockLevelBrowserLayer>(scene);
+    refreshLayers<CreatorLayer, SafetyLockCreatorLayer>(scene);
+    refreshLayers<LevelListLayer, SafetyLockLevelListLayer>(scene);
+    refreshLayers<EditLevelLayer, SafetyLockEditLevelLayer>(scene);
+}
+
+void refreshAllScenes()
+{
+    auto director = CCDirector::get();
+    refreshScene(director->getRunningScene());
+
+    if (director->m_pobScenesStack)
+    {
+        for (auto scene : CCArrayExt<CCNode*>(director->m_pobScenesStack))
+        {
+            refreshScene(scene);
+        }
+    }
+}
