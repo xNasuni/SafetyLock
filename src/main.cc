@@ -316,7 +316,7 @@ protected:
                 ButtonSprite::create("Set"),
                 [input](Button*)
                 {
-                    auto pin = input->getString();
+                    std::string pin = input->getString();
                     if (pin.length() <= 2)
                     {
                         Notification::create("PIN too short", NotificationIcon::Error)->show();
