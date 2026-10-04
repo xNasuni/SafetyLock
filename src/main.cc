@@ -732,13 +732,17 @@ class $modify(SafetyLockProfilePage, ProfilePage)
         if (mainMenu)
         {
             auto commentBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(mainMenu->getChildByIDRecursive("comment-button"));
+            auto followBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(mainMenu->getChildByIDRecursive("follow-button"));
+
             if (safetylock::m_silent)
             {
                 setVisibleByUs(commentBtn, CAN_MODIFY_ACCOUNT);
+                setVisibleByUs(followBtn, CAN_MODIFY_ACCOUNT);
             }
             else
             {
                 setButtonLocked(commentBtn, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(followBtn, CAN_MODIFY_ACCOUNT);
             }
         }
 
