@@ -16,4 +16,4 @@ unfrequently asked questions:
   > yeah but the target audience is supposed to be kids and<br>
   > the silent option makes it harder to tell you're even restricted<br>
   > by hiding stuff instead of locking it away and making it seamless<br>
-  > they wouldn't have an incentive to try to remove it.. ? idk I tried my best it would definitely not be allowed if I prevented disable/uninstall until you put in the pin so this is fine I think for the use case
+  > they wouldn't have an incentive to try to remove it.. ? idk I tried my best; it would still be easily disabled with safe mode and even then probably not be allowed if I prevented the mod from being disabled/uninstalled until you put in the pin so this is fine enough I think for the use case thanks bye
