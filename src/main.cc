@@ -137,7 +137,10 @@ protected:
                 {
                     auto onSuccess = std::move(m_onSuccess);
                     this->onClose(nullptr);
-                    onSuccess();
+                    if (onSuccess)
+                    {
+                        onSuccess();
+                    }
                     return;
                 }
             }
@@ -892,7 +895,7 @@ class $modify(SafetyLockLevelInfoLayer, LevelInfoLayer)
         auto likeBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("like-button"));
         auto rateBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("rate-button"));
 
-        if (safetylock::locked && this->m_level)
+        if (this->m_level)
         {
             if (safetylock::m_silent)
             {
