@@ -8,7 +8,7 @@
   },
   "id": "xnasuni.safetylock",
   "name": "Safety Lock",
-  "version": "v1.0.0",
+  "version": "v1.0.1",
   "developer": "xNasuni",
   "description": "Protect younger siblings from unrated levels!",
   "dependencies": {
