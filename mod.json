@@ -1,0 +1,30 @@
+{
+  "geode": "5.10.1",
+  "gd": {
+    "win": "2.2081",
+    "android": "2.2081",
+    "mac": "2.2081",
+    "ios": "2.2081"
+  },
+  "id": "xnasuni.safetylock",
+  "name": "Safety Lock",
+  "version": "v1.0.0",
+  "developer": "xNasuni",
+  "description": "Protect younger siblings from unrated levels!",
+  "dependencies": {
+    "geode.node-ids": ">=v1.23.3"
+  },
+  "links": {
+    "source": "https://github.com/xNasuni/SafetyLock"
+  },
+  "tags": ["customization", "universal", "utility"],
+  "settings": {
+    "lock": {
+      "type": "button",
+      "buttons": {
+        "manage-lock": "Manage Lock"
+      },
+      "description": "Manage Safety Lock Options"
+    }
+  }
+}
