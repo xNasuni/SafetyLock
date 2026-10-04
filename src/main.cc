@@ -555,6 +555,30 @@ void setVisibleByUs(CCNode* node, bool visible)
     }
 }
 
+
+void setEnabledByUs(CCMenuItem* node, bool enabled)
+{
+    if (!node)
+    {
+        return;
+    }
+
+    auto key = "disabled"_spr;
+    if (!enabled)
+    {
+        if (node->isEnabled())
+        {
+            node->setEnabled(false);
+            node->setUserObject(key, CCBool::create(true));
+        }
+    }
+    else if (node->getUserObject(key))
+    {
+        node->setEnabled(true);
+        node->setUserObject(key, nullptr);
+    }
+}
+
 #include <Geode/modify/MenuLayer.hpp>
 class $modify(SafetyLockMenuLayer, MenuLayer)
 {
@@ -606,24 +630,30 @@ class $modify(SafetyLockOptionsLayer, OptionsLayer)
 
     void applyLocks()
     {
-        auto accountBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("account-button"));
-        if (accountBtn)
+        auto optionsMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("options-menu"));
+        if (optionsMenu)
         {
-            if (safetylock::m_silent)
+            auto accountBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(optionsMenu->getChildByIDRecursive("account-button"));
+            if (accountBtn)
             {
-                setVisibleByUs(accountBtn, CAN_MODIFY_ACCOUNT);
-            }
-            else
-            {
-                if (auto bs = typeinfo_cast<ButtonSprite*>(accountBtn->getNormalImage()))
+                if (safetylock::m_silent)
                 {
-                    if (auto label = bs->m_label)
-                    {
-                        setVisibleByUs(label, CAN_MODIFY_ACCOUNT);
-                    }
+                    setVisibleByUs(accountBtn, CAN_MODIFY_ACCOUNT);
                 }
-                setButtonLocked(accountBtn, CAN_MODIFY_ACCOUNT);
+                else
+                {
+                    if (auto bs = typeinfo_cast<ButtonSprite*>(accountBtn->getNormalImage()))
+                    {
+                        if (auto label = bs->m_label)
+                        {
+                            setVisibleByUs(label, CAN_MODIFY_ACCOUNT);
+                        }
+                    }
+                    setButtonLocked(accountBtn, CAN_MODIFY_ACCOUNT);
+                }
             }
+
+            optionsMenu->updateLayout();
         }
     }
 
@@ -655,29 +685,31 @@ class $modify(SafetyLockProfilePage, ProfilePage)
             setVisibleByUs(commentList, CAN_VIEW_COMMENTS);
         }
 
-        auto accountManageMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("bottom-menu"));
-        if (accountManageMenu)
+        auto bottomMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("bottom-menu"));
+        if (bottomMenu)
         {
-            for (auto id : { "message-button", "friend-button", "requests-button", "settings-button", "block-button" })
+            for (auto id : { "message-button", "friend-button", "requests-button", "settings-button", "block-button", "follow-button" })
             {
-                auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(accountManageMenu->getChildByIDRecursive(id));
-                if (btn)
+                auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(bottomMenu->getChildByIDRecursive(id));
+
+                if (safetylock::m_silent)
                 {
-                    if (safetylock::m_silent)
-                    {
-                        setVisibleByUs(btn, CAN_MODIFY_ACCOUNT);
-                    }
-                    else
-                    {
-                        setButtonLocked(btn, CAN_MODIFY_ACCOUNT);
-                    }
+                    setVisibleByUs(btn, CAN_MODIFY_ACCOUNT);
+                }
+                else
+                {
+                    setButtonLocked(btn, CAN_MODIFY_ACCOUNT);
                 }
             }
+
+            bottomMenu->updateLayout();
         }
 
-        auto commentsHistoryBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("comment-history-button"));
-        if (commentsHistoryBtn)
+        auto leftMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("left-menu"));
+        if (leftMenu)
         {
+            auto commentsHistoryBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("comment-history-button"));
+
             if (safetylock::m_silent)
             {
                 setVisibleByUs(commentsHistoryBtn, CAN_VIEW_COMMENTS);
@@ -686,22 +718,21 @@ class $modify(SafetyLockProfilePage, ProfilePage)
             {
                 setButtonLocked(commentsHistoryBtn, CAN_VIEW_COMMENTS);
             }
+
+            leftMenu->updateLayout();
         }
 
         auto mainMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("main-menu"));
         if (mainMenu)
         {
             auto commentBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(mainMenu->getChildByIDRecursive("comment-button"));
-            if (commentBtn)
+            if (safetylock::m_silent)
             {
-                if (safetylock::m_silent)
-                {
-                    setVisibleByUs(commentBtn, CAN_MODIFY_ACCOUNT);
-                }
-                else
-                {
-                    setButtonLocked(commentBtn, CAN_MODIFY_ACCOUNT);
-                }
+                setVisibleByUs(commentBtn, CAN_MODIFY_ACCOUNT);
+            }
+            else
+            {
+                setButtonLocked(commentBtn, CAN_MODIFY_ACCOUNT);
             }
         }
 
@@ -711,22 +742,6 @@ class $modify(SafetyLockProfilePage, ProfilePage)
             if (safetylock::m_silent)
             {
                 setVisibleByUs(followHint, CAN_MODIFY_ACCOUNT);
-            }
-        }
-
-        for (auto id : { "follow-button", "friend-button", "block-button" })
-        {
-            auto btn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive(id));
-            if (btn)
-            {
-                if (safetylock::m_silent)
-                {
-                    setVisibleByUs(btn, CAN_MODIFY_ACCOUNT);
-                }
-                else
-                {
-                    setButtonLocked(btn, CAN_MODIFY_ACCOUNT);
-                }
             }
         }
     }
@@ -827,17 +842,16 @@ class $modify(SafetyLockCommentCell, CommentCell)
     void applyLocks()
     {
         auto deleteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("delete-button"));
-        if (deleteBtn)
+        auto likeBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("like-button"));
+        if (safetylock::m_silent)
         {
-            if (safetylock::m_silent)
-            {
-                setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
-            }
-            else
-            {
-                setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
-            }
+            setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
         }
+        else
+        {
+            setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
+        }
+        setEnabledByUs(likeBtn, CAN_MODIFY_ACCOUNT);
     }
 
     void loadFromComment(GJComment* comment)
@@ -875,80 +889,70 @@ class $modify(SafetyLockLevelInfoLayer, LevelInfoLayer)
 
     void applyLocks()
     {
-        auto playBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("play-button"));
-        auto infoBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("info-button"));
-        auto favoriteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("favorite-button"));
-
-        CCMenuItemSpriteExtra* deleteBtn1 = nullptr;
-        CCMenuItemSpriteExtra* copyBtn = nullptr;
-        if (auto leftSideMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("left-side-menu")))
-        {
-            deleteBtn1 = typeinfo_cast<CCMenuItemSpriteExtra*>(leftSideMenu->getChildByIDRecursive("delete-button"));
-            copyBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(leftSideMenu->getChildByIDRecursive("copy-button"));
-        }
-        CCMenuItemSpriteExtra* deleteBtn2 = nullptr;
-        if (auto leftSideMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("right-side-menu")))
-        {
-            deleteBtn2 = typeinfo_cast<CCMenuItemSpriteExtra*>(leftSideMenu->getChildByIDRecursive("delete-button"));
-        }
-
-        auto likeBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("like-button"));
-        auto rateBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("rate-button"));
-
         if (this->m_level)
         {
+            auto playBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("play-button"));
+            auto favoriteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("favorite-button"));
+
             if (safetylock::m_silent)
             {
-                if (playBtn)
-                {
-                    setVisibleByUs(playBtn, CAN_PLAY_LEVEL);
-                }
-
-                if (copyBtn)
-                {
-                    setVisibleByUs(copyBtn, CAN_CLONE_LEVEL);
-                }
-
-                if (deleteBtn1)
-                {
-                    setVisibleByUs(deleteBtn1, CAN_MODIFY_ACCOUNT);
-                }
-
-                if (deleteBtn2)
-                {
-                    setVisibleByUs(deleteBtn2, CAN_MODIFY_ACCOUNT);
-                }
-
-                if (likeBtn)
-                {
-                    setVisibleByUs(likeBtn, CAN_MODIFY_ACCOUNT);
-                }
-
-                if (rateBtn)
-                {
-                    setVisibleByUs(rateBtn, CAN_MODIFY_ACCOUNT);
-                }
-
-                if (infoBtn)
-                {
-                    setVisibleByUs(infoBtn, CAN_VIEW_COMMENTS);
-                }
-
-                if (favoriteBtn)
-                {
-                    setVisibleByUs(favoriteBtn, CAN_MODIFY_ACCOUNT);
-                }
+                setVisibleByUs(playBtn, CAN_PLAY_LEVEL);
+                setVisibleByUs(favoriteBtn, CAN_MODIFY_ACCOUNT);
             }
             else
             {
                 setButtonLocked(playBtn, CAN_PLAY_LEVEL);
-                setButtonLocked(copyBtn, CAN_CLONE_LEVEL);
-                setButtonLocked(deleteBtn1, CAN_MODIFY_ACCOUNT);
-                setButtonLocked(deleteBtn2, CAN_MODIFY_ACCOUNT);
-                setButtonLocked(likeBtn, CAN_MODIFY_ACCOUNT);
-                setButtonLocked(rateBtn, CAN_MODIFY_ACCOUNT);
-                setButtonLocked(infoBtn, CAN_VIEW_COMMENTS);
                 setButtonLocked(favoriteBtn, CAN_MODIFY_ACCOUNT);
+            }
+
+            auto leftSideMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("left-side-menu"));
+            if (leftSideMenu)
+            {
+                auto copyBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(leftSideMenu->getChildByIDRecursive("copy-button"));
+                auto deleteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(leftSideMenu->getChildByIDRecursive("delete-button"));
+
+                if (safetylock::m_silent)
+                {
+                    setVisibleByUs(copyBtn, CAN_CLONE_LEVEL);
+                    setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
+                }
+                else
+                {
+                    setButtonLocked(copyBtn, CAN_CLONE_LEVEL);
+                    setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
+                }
+
+                leftSideMenu->updateLayout();
+            }
+
+            auto rightSideMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("right-side-menu"));
+            if (rightSideMenu)
+            {
+                auto deleteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("delete-button"));
+                auto infoBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("info-button"));
+                auto likeBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("like-button"));
+                auto rateBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("rate-button"));
+
+                if (safetylock::m_silent)
+                {
+                    setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
+                    setVisibleByUs(infoBtn, CAN_VIEW_COMMENTS);
+                    setVisibleByUs(likeBtn, CAN_MODIFY_ACCOUNT);
+                    setVisibleByUs(rateBtn, CAN_MODIFY_ACCOUNT);
+                }
+                else
+                {
+                    setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
+                    setButtonLocked(infoBtn, CAN_VIEW_COMMENTS);
+                    setButtonLocked(likeBtn, CAN_MODIFY_ACCOUNT);
+                    setButtonLocked(rateBtn, CAN_MODIFY_ACCOUNT);
+                }
+
+                if (auto layout = typeinfo_cast<AxisLayout*>(rightSideMenu->getLayout()))
+                {
+                    layout->ignoreInvisibleChildren(true);
+                }
+                rightSideMenu->updateLayout();
             }
         }
     }
@@ -989,6 +993,18 @@ class $modify(SafetyLockLevelInfoLayer, LevelInfoLayer)
         LevelInfoLayer::onLike(sender);
     }
 
+    void onRateDemon(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        LevelInfoLayer::onRateDemon(sender);
+    }
+
+    void onRateStars(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        LevelInfoLayer::onRateStars(sender);
+    }
+
     void onRate(CCObject* sender)
     {
         COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
@@ -1005,6 +1021,49 @@ class $modify(SafetyLockLevelInfoLayer, LevelInfoLayer)
     {
         COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
         LevelInfoLayer::onFavorite(sender);
+    }
+};
+
+#include <Geode/modify/InfoLayer.hpp>
+class $modify(SafetyLockInfoLayer, InfoLayer)
+{
+    bool init(GJGameLevel* level, GJUserScore* score, GJLevelList* list)
+    {
+        if (!InfoLayer::init(level, score, list))
+        {
+            return false;
+        }
+
+        this->applyLocks();
+        return true;
+    }
+
+    void applyLocks()
+    {
+        auto commentBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("comment-button"));
+        auto reportBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("report-button"));
+        if (safetylock::m_silent)
+        {
+            setVisibleByUs(commentBtn, CAN_MODIFY_ACCOUNT);
+            setVisibleByUs(reportBtn, CAN_MODIFY_ACCOUNT);
+        }
+        else
+        {
+            setButtonLocked(commentBtn, CAN_MODIFY_ACCOUNT);
+            setButtonLocked(reportBtn, CAN_MODIFY_ACCOUNT);
+        }
+    }
+
+    void onComment(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        InfoLayer::onComment(sender);
+    }
+
+    void confirmReport(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        InfoLayer::confirmReport(sender);
     }
 };
 
@@ -1052,16 +1111,13 @@ class $modify(SafetyLockLevelBrowserLayer, LevelBrowserLayer)
         if (savedMenu)
         {
             auto deleteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(savedMenu->getChildByIDRecursive("delete-button"));
-            if (deleteBtn)
+            if (safetylock::m_silent)
             {
-                if (safetylock::m_silent)
-                {
-                    setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
-                }
-                else
-                {
-                    setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
-                }
+                setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
+            }
+            else
+            {
+                setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
             }
         }
     }
@@ -1120,10 +1176,10 @@ class $modify(SafetyLockCreatorLayer, CreatorLayer)
 
     void applyLocks()
     {
-        auto createBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("create-button"));
-        auto treasureRoomBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("treasure-room-button"));
-        if (createBtn)
+        if (auto creatorButtons = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("creator-buttons-menu")))
         {
+            auto createBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(creatorButtons->getChildByIDRecursive("create-button"));
+
             if (safetylock::m_silent)
             {
                 setVisibleByUs(createBtn, CAN_USE_EDITOR);
@@ -1132,10 +1188,14 @@ class $modify(SafetyLockCreatorLayer, CreatorLayer)
             {
                 setButtonLocked(createBtn, CAN_USE_EDITOR);
             }
+
+            creatorButtons->updateLayout();
         }
 
-        if (treasureRoomBtn)
+        if (auto bottomRight = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("bottom-right-menu")))
         {
+
+            auto treasureRoomBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(bottomRight->getChildByIDRecursive("treasure-room-button"));
             if (safetylock::m_silent)
             {
                 setVisibleByUs(treasureRoomBtn, CAN_MODIFY_ACCOUNT);
@@ -1144,6 +1204,8 @@ class $modify(SafetyLockCreatorLayer, CreatorLayer)
             {
                 setButtonLocked(treasureRoomBtn, CAN_MODIFY_ACCOUNT);
             }
+
+            bottomRight->updateLayout();
         }
     }
 
@@ -1176,64 +1238,33 @@ class $modify(SafetyLockLevelListLayer, LevelListLayer)
 
     void applyLocks()
     {
-        CCMenuItemSpriteExtra* infoButton = nullptr;
-        CCMenuItemSpriteExtra* likeButton = nullptr;
-        CCMenuItemSpriteExtra* copyButton = nullptr;
-        CCMenuItemSpriteExtra* favoriteButton = nullptr;
         if (auto rightSideMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("right-side-menu")))
         {
-            infoButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("info-button"));
-            likeButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("like-button"));
-            copyButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("copy-button"));
-            favoriteButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("favorite-button"));
-        }
+            CCMenuItemSpriteExtra* infoButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("info-button"));
+            CCMenuItemSpriteExtra* likeButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("like-button"));
+            CCMenuItemSpriteExtra* copyButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("copy-button"));
+            CCMenuItemSpriteExtra* favoriteButton = typeinfo_cast<CCMenuItemSpriteExtra*>(rightSideMenu->getChildByIDRecursive("favorite-button"));
 
-        if (infoButton)
-        {
             if (safetylock::m_silent)
             {
                 setVisibleByUs(infoButton, CAN_VIEW_COMMENTS);
-            }
-            else
-            {
-                setButtonLocked(infoButton, CAN_VIEW_COMMENTS);
-            }
-        }
-
-        if (likeButton)
-        {
-            if (safetylock::m_silent)
-            {
                 setVisibleByUs(likeButton, CAN_MODIFY_ACCOUNT);
-            }
-            else
-            {
-                setButtonLocked(likeButton, CAN_MODIFY_ACCOUNT);
-            }
-        }
-
-        if (copyButton)
-        {
-            if (safetylock::m_silent)
-            {
                 setVisibleByUs(copyButton, CAN_MODIFY_ACCOUNT);
-            }
-            else
-            {
-                setButtonLocked(copyButton, CAN_MODIFY_ACCOUNT);
-            }
-        }
-
-        if (favoriteButton)
-        {
-            if (safetylock::m_silent)
-            {
                 setVisibleByUs(favoriteButton, CAN_MODIFY_ACCOUNT);
             }
             else
             {
+                setButtonLocked(infoButton, CAN_VIEW_COMMENTS);
+                setButtonLocked(likeButton, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(copyButton, CAN_MODIFY_ACCOUNT);
                 setButtonLocked(favoriteButton, CAN_MODIFY_ACCOUNT);
             }
+
+            if (auto layout = typeinfo_cast<AxisLayout*>(rightSideMenu->getLayout()))
+            {
+                layout->ignoreInvisibleChildren(true);
+            }
+            rightSideMenu->updateLayout();
         }
     }
 
@@ -1243,21 +1274,62 @@ class $modify(SafetyLockLevelListLayer, LevelListLayer)
         LevelListLayer::onInfo(sender);
     }
 
-    void confirmClone(CCObject* sender)
-    {
-        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
-        LevelListLayer::confirmClone(sender);
-    }
-
     void onLike(CCObject* sender)
     {
         COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
         LevelListLayer::onLike(sender);
     }
 
+    void confirmClone(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        LevelListLayer::confirmClone(sender);
+    }
+
     void onFavorite(CCObject* sender)
     {
         COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
         LevelListLayer::onFavorite(sender);
+    }
+};
+
+#include <Geode/modify/EditLevelLayer.hpp>
+class $modify(SafetyLockEditLevelLayer, EditLevelLayer)
+{
+    bool init(GJGameLevel* level)
+    {
+        if (!EditLevelLayer::init(level))
+        {
+            return false;
+        }
+
+        this->applyLocks();
+        return true;
+    }
+
+    void applyLocks()
+    {
+        auto levelActionsMenu = typeinfo_cast<CCMenu*>(this->getChildByIDRecursive("level-actions-menu"));
+        if (levelActionsMenu)
+        {
+            auto deleteBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(levelActionsMenu->getChildByIDRecursive("delete-button"));
+
+            if (safetylock::m_silent)
+            {
+                setVisibleByUs(deleteBtn, CAN_MODIFY_ACCOUNT);
+            }
+            else
+            {
+                setButtonLocked(deleteBtn, CAN_MODIFY_ACCOUNT);
+            }
+
+            levelActionsMenu->updateLayout();
+        }
+    }
+
+    void confirmDelete(CCObject* sender)
+    {
+        COND_SUDO_EXIT_IFNOT(CAN_MODIFY_ACCOUNT)
+        EditLevelLayer::confirmDelete(sender);
     }
 };
