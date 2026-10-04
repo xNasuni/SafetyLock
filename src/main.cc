@@ -892,58 +892,61 @@ class $modify(SafetyLockLevelInfoLayer, LevelInfoLayer)
         auto likeBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("like-button"));
         auto rateBtn = typeinfo_cast<CCMenuItemSpriteExtra*>(this->getChildByIDRecursive("rate-button"));
 
-        if (safetylock::m_silent)
+        if (safetylock::locked && this->m_level)
         {
-            if (playBtn)
+            if (safetylock::m_silent)
             {
-                setVisibleByUs(playBtn, CAN_PLAY_LEVEL);
-            }
+                if (playBtn)
+                {
+                    setVisibleByUs(playBtn, CAN_PLAY_LEVEL);
+                }
 
-            if (copyBtn)
-            {
-                setVisibleByUs(copyBtn, CAN_CLONE_LEVEL);
-            }
+                if (copyBtn)
+                {
+                    setVisibleByUs(copyBtn, CAN_CLONE_LEVEL);
+                }
 
-            if (deleteBtn1)
-            {
-                setVisibleByUs(deleteBtn1, CAN_MODIFY_ACCOUNT);
-            }
+                if (deleteBtn1)
+                {
+                    setVisibleByUs(deleteBtn1, CAN_MODIFY_ACCOUNT);
+                }
 
-            if (deleteBtn2)
-            {
-                setVisibleByUs(deleteBtn2, CAN_MODIFY_ACCOUNT);
-            }
+                if (deleteBtn2)
+                {
+                    setVisibleByUs(deleteBtn2, CAN_MODIFY_ACCOUNT);
+                }
 
-            if (likeBtn)
-            {
-                setVisibleByUs(likeBtn, CAN_MODIFY_ACCOUNT);
-            }
+                if (likeBtn)
+                {
+                    setVisibleByUs(likeBtn, CAN_MODIFY_ACCOUNT);
+                }
 
-            if (rateBtn)
-            {
-                setVisibleByUs(rateBtn, CAN_MODIFY_ACCOUNT);
-            }
+                if (rateBtn)
+                {
+                    setVisibleByUs(rateBtn, CAN_MODIFY_ACCOUNT);
+                }
 
-            if (infoBtn)
-            {
-                setVisibleByUs(infoBtn, CAN_VIEW_COMMENTS);
-            }
+                if (infoBtn)
+                {
+                    setVisibleByUs(infoBtn, CAN_VIEW_COMMENTS);
+                }
 
-            if (favoriteBtn)
-            {
-                setVisibleByUs(favoriteBtn, CAN_MODIFY_ACCOUNT);
+                if (favoriteBtn)
+                {
+                    setVisibleByUs(favoriteBtn, CAN_MODIFY_ACCOUNT);
+                }
             }
-        }
-        else
-        {
-            setButtonLocked(playBtn, CAN_PLAY_LEVEL);
-            setButtonLocked(copyBtn, CAN_CLONE_LEVEL);
-            setButtonLocked(deleteBtn1, CAN_MODIFY_ACCOUNT);
-            setButtonLocked(deleteBtn2, CAN_MODIFY_ACCOUNT);
-            setButtonLocked(likeBtn, CAN_MODIFY_ACCOUNT);
-            setButtonLocked(rateBtn, CAN_MODIFY_ACCOUNT);
-            setButtonLocked(infoBtn, CAN_VIEW_COMMENTS);
-            setButtonLocked(favoriteBtn, CAN_MODIFY_ACCOUNT);
+            else
+            {
+                setButtonLocked(playBtn, CAN_PLAY_LEVEL);
+                setButtonLocked(copyBtn, CAN_CLONE_LEVEL);
+                setButtonLocked(deleteBtn1, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(deleteBtn2, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(likeBtn, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(rateBtn, CAN_MODIFY_ACCOUNT);
+                setButtonLocked(infoBtn, CAN_VIEW_COMMENTS);
+                setButtonLocked(favoriteBtn, CAN_MODIFY_ACCOUNT);
+            }
         }
     }
 
